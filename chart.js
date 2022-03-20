@@ -1,10 +1,10 @@
 class Chart {
     constructor(sFirstChartId, sSecondChartId) {
         const oMargin = this.oMargin = {
-            top: 100,
-            right: 60,
-            left: 100,
-            bottom: 50
+            top: 20,
+            right: 30,
+            left: 50,
+            bottom: 60
         }
 
         const oFirstChartWrapper = this.oFirstChartWrapper = d3.select(`#${sFirstChartId}Wrapper`);
@@ -43,9 +43,7 @@ class Chart {
 
         const oXScale = this.oXScale = d3.scaleBand()
             .range([oMargin.left, this.oCalculatedSizeFirst.width - oMargin.right])
-            .domain(aColumnsData.map((oData) => {
-                return `${oData.sYear}/${oData.sMonth}`;
-            }));
+            .domain(aColumnsData.map((oData) => oData.sLabel));
 
         const oYAxis = this.oYAxis = d3.axisLeft(oYScale);
         const oXAxis = this.oXAxis = d3.axisBottom(oXScale);
@@ -57,7 +55,6 @@ class Chart {
         $Svg.append("g")
             .attr("transform", `translate(${0},${this.oCalculatedSizeFirst.height - oMargin.bottom})`)
             .call(oXAxis);
-        
     }
 
     get _additionalHeight() {
@@ -121,6 +118,7 @@ class Chart {
                 dDate: dDate,
                 iValue: Chart.generateRandomInteger(iMaxValue)
             });
+            aGeneratedData[i].sLabel = `${aGeneratedData[i].sYear}/${aGeneratedData[i].sMonth}`
         }
 
         return aGeneratedData;
