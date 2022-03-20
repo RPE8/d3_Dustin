@@ -1,54 +1,65 @@
 class Chart {
     constructor(sFirstChartId, sSecondChartId) {
-        this.iMargin = 10;
-        
+        const oMargin = this.oMargin = {
+            top: 20,
+            right: 10,
+            left: 60,
+            bottom: 40
+        }
+
         const oFirstChartWrapper = this.oFirstChartWrapper = d3.select(`#${sFirstChartId}Wrapper`);
         const oSecondChartWrapper = this.oSecondChartWrapper = d3.select(`#${sSecondChartId}Wrapper`);
 
-        const oCalculatedSizeFirst = Chart.getElementSizeWoBoxSizing(oFirstChartWrapper.node());
-        
-
-        this.firstChartSvg = oFirstChartWrapper.append("svg")
+        const oCalculatedSizeFirst = this.oCalculatedSizeFirst =  Chart.getElementSizeWoBoxSizing(oFirstChartWrapper.node());
+        const oFirstChartSvg = this.oFirstChartSvg = oFirstChartWrapper.append("svg")
             .attr("id", sFirstChartId)
             .attr("width", oCalculatedSizeFirst.width)
-            // 5 is a hardcoded value. For some reason parent div is geeting higher when we add svg into it
             .attr("height", oCalculatedSizeFirst.height - 5);
 
-        const oCalculatedSizeSecond = Chart.getElementSizeWoBoxSizing(oSecondChartWrapper.node());
-        this.secondChartSvg = oSecondChartWrapper.append("svg")
+        // Calculates size for second chart after the first one, because adding of first svg makes and impact on
+        //    available size for second one. 
+        const oCalculatedSizeSecond = this.oCalculatedSizeSecond = Chart.getElementSizeWoBoxSizing(oSecondChartWrapper.node());
+        const oSecondChartSvg = this.oSecondChartSvg = oSecondChartWrapper.append("svg")
             .attr("id", sSecondChartId)
             .attr("width", oCalculatedSizeSecond.width)
-            // 5 is a hardcoded value. For some reason parent div is geeting higher when we add svg into it
             .attr("height", oCalculatedSizeSecond.height - 5);
     }
 
-    // redraw = () => {
-    //     return;
-    //     const iFirstHeight = this.iFirstHeight =  this.firstChartWrapper.node().getBoundingClientRect().height;
-    //     const iFirstWidth = this.iFirstHeight =  this.firstChartWrapper.node().getBoundingClientRect().width;
-    //     const iSecondHeight = this.iSecondHeight = this.secondChartWrapper.node().getBoundingClientRect().height;
-    //     const iSecondWidth = this.iSecondWidth = this.secondChartWrapper.node().getBoundingClientRect().width;
-    //     this.firstChartSvg
-    //         .attr("width", iFirstWidth)
-    //         .attr("height", iFirstHeight)
-    //         // .attr("viewBox", [0, 0, iFirstWidth, iFirstHeight])
-    //     this.secondChartSvg
-    //         .attr("width", iSecondWidth)
-    //         .attr("height", iSecondHeight)
-    //         // .attr("viewBox", [0, 0, iSecondWidth, iSecondHeight])
+    drawFirstChart() {
+        let aColumnsData = this.columnsData;
+        const $Svg = this.oFirstChartSvg;
+        const oMargin = this.oMargin;
 
-    //     this.drawLine();
-    // }
+        if (!aColumnsData || !$Svg) {
+            console.log("drawFirstChart no data");
+            return false;
+        }
 
-    drawLine() {
-        // this.firstChartSvg.select("line").remove();
-        // this.firstChartSvg.append('line')
-        //     .style("stroke", "lightgreen")
-        //     .style("stroke-width", this.iFirstHeight / 10)
-        //     .attr("x1", 0)
-        //     .attr("y1", 0)
-        //     .attr("x2", 200)
-        //     .attr("y2", 200); 
+        const oYScale = this.oYScale = d3.scaleLinear()
+            .range([this.oCalculatedSizeFirst.height - oMargin.bottom, oMargin.top + oMargin.bottom])
+            .domain([0, 100]);
+
+        const oXScale = this.oXScale = d3.scaleBand()
+            .range([this.oCalculatedSizeFirst.width - oMargin.right, oMargin.left + oMargin.right])
+            .domain(aColumnsData.map((oData) => {
+                return `${oData.sYear}/${oData.sMonth}`;
+            }));
+
+        const oYAxis = this.oYAxis = d3.axisLeft(oYScale);
+        const oXAxis = this.oXAxis = d3.axisBottom(oXScale);
+
+        $Svg.append("g")
+            .attr("transform", `translate(${oMargin.left},${-oMargin.bottom})`)
+            .call(oYAxis);
+        
+        $Svg.append("g")
+            .attr("transform", `translate(${-oMargin.right},${this.oCalculatedSizeFirst.height - oMargin.bottom - oMargin.top})`)
+            .call(oXAxis);
+        
+    }
+
+    drawSecondChart() {
+
     }
     
     set columnsData(aData) {
@@ -143,6 +154,6 @@ console.log('First Line:');
 console.log(chart.firstLineData);
 console.log('SecondLine:');
 console.log(chart.secondLineData);
-chart.drawLine();
+chart.drawFirstChart();
 
 // window.addEventListener("resize", chart.redraw);
