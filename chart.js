@@ -1,28 +1,30 @@
 class Chart {
     constructor(sFirstChartId, sSecondChartId) {
         const oMargin = this.oMargin = {
-            top: 20,
-            right: 10,
-            left: 60,
-            bottom: 40
+            top: 100,
+            right: 60,
+            left: 100,
+            bottom: 50
         }
 
         const oFirstChartWrapper = this.oFirstChartWrapper = d3.select(`#${sFirstChartId}Wrapper`);
         const oSecondChartWrapper = this.oSecondChartWrapper = d3.select(`#${sSecondChartId}Wrapper`);
 
         const oCalculatedSizeFirst = this.oCalculatedSizeFirst =  Chart.getElementSizeWoBoxSizing(oFirstChartWrapper.node());
+        this.oCalculatedSizeFirst.height -= this._additionalHeight;
         const oFirstChartSvg = this.oFirstChartSvg = oFirstChartWrapper.append("svg")
             .attr("id", sFirstChartId)
             .attr("width", oCalculatedSizeFirst.width)
-            .attr("height", oCalculatedSizeFirst.height - 5);
+            .attr("height", oCalculatedSizeFirst.height);
 
         // Calculates size for second chart after the first one, because adding of first svg makes and impact on
         //    available size for second one. 
         const oCalculatedSizeSecond = this.oCalculatedSizeSecond = Chart.getElementSizeWoBoxSizing(oSecondChartWrapper.node());
+        this.oCalculatedSizeSecond.height -= this._additionalHeight;
         const oSecondChartSvg = this.oSecondChartSvg = oSecondChartWrapper.append("svg")
             .attr("id", sSecondChartId)
             .attr("width", oCalculatedSizeSecond.width)
-            .attr("height", oCalculatedSizeSecond.height - 5);
+            .attr("height", oCalculatedSizeSecond.height);
     }
 
     drawFirstChart() {
@@ -36,11 +38,11 @@ class Chart {
         }
 
         const oYScale = this.oYScale = d3.scaleLinear()
-            .range([this.oCalculatedSizeFirst.height - oMargin.bottom, oMargin.top + oMargin.bottom])
+            .range([oMargin.top, this.oCalculatedSizeFirst.height - oMargin.bottom])
             .domain([0, 100]);
 
         const oXScale = this.oXScale = d3.scaleBand()
-            .range([this.oCalculatedSizeFirst.width - oMargin.right, oMargin.left + oMargin.right])
+            .range([oMargin.left, this.oCalculatedSizeFirst.width - oMargin.right])
             .domain(aColumnsData.map((oData) => {
                 return `${oData.sYear}/${oData.sMonth}`;
             }));
@@ -49,13 +51,17 @@ class Chart {
         const oXAxis = this.oXAxis = d3.axisBottom(oXScale);
 
         $Svg.append("g")
-            .attr("transform", `translate(${oMargin.left},${-oMargin.bottom})`)
+            .attr("transform", `translate(${oMargin.left},${0})`)
             .call(oYAxis);
         
         $Svg.append("g")
-            .attr("transform", `translate(${-oMargin.right},${this.oCalculatedSizeFirst.height - oMargin.bottom - oMargin.top})`)
+            .attr("transform", `translate(${0},${this.oCalculatedSizeFirst.height - oMargin.bottom})`)
             .call(oXAxis);
         
+    }
+
+    get _additionalHeight() {
+        return 5;
     }
 
     drawSecondChart() {
@@ -119,6 +125,7 @@ class Chart {
 
         return aGeneratedData;
     }
+
     
     static generateRandomInteger(iMax) {
         return Math.floor(Math.random() * iMax);
