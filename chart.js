@@ -1,8 +1,10 @@
+// TODO: draw content based on postion of container;
+
 class Chart {
     constructor(sFirstChartId, sSecondChartId) {
         const oChartContentMargin = this.oChartContentMargin = {
             top: 20,
-            right: 10,
+            right: 20,
             left: 50,
             bottom: 60
         }
@@ -45,32 +47,45 @@ class Chart {
 
     drawFirstChart() {
         let aColumnsData = this.columnsData;
-        const $chartContainer = this.oFirstChartContent;
-        const oMargin = this.oChartContentMargin;
+        const $ChartContainer = this.oFirstChartContent;
+        const oContentMargin = this.oChartContentMargin;
+        const oContainerMargin = this.oChartMargin;
 
-        if (!aColumnsData || !$chartContainer) {
+        if (!aColumnsData || !$ChartContainer) {
             console.log("drawFirstChart no data");
             return false;
         }
 
         const oYScale = this.oYScale = d3.scaleLinear()
-            .range([oMargin.top, this.oCalculatedSizeFirst.height - oMargin.bottom])
+            .range([this.oCalculatedSizeFirst.height - oContentMargin.bottom, oContentMargin.top])
             .domain([0, 100]);
 
         const oXScale = this.oXScale = d3.scaleBand()
-            .range([oMargin.left, this.oCalculatedSizeFirst.width - oMargin.right])
+            .range([oContentMargin.left, this.oCalculatedSizeFirst.width - oContentMargin.right])
             .domain(aColumnsData.map((oData) => oData.sLabel));
+
 
         const oYAxis = this.oYAxis = d3.axisLeft(oYScale);
         const oXAxis = this.oXAxis = d3.axisBottom(oXScale);
 
-        $chartContainer.append("g")
-            .attr("transform", `translate(${oMargin.left},${0})`)
+        $ChartContainer.append("g")
+            .attr("transform", `translate(${oContentMargin.left},${0})`)
             .call(oYAxis);
         
-        $chartContainer.append("g")
-            .attr("transform", `translate(${0},${this.oCalculatedSizeFirst.height - oMargin.bottom})`)
+        $ChartContainer.append("g")
+            .attr("transform", `translate(${0},${this.oCalculatedSizeFirst.height - oContentMargin.bottom})`)
             .call(oXAxis);
+
+        const $Bars = this.$Bars = $ChartContainer.append("g")
+            // .attr("transform", `translate(${(oContainerMargin.left - oContainerMargin.right) + oContentMargin.left},${(oContainerMargin.top - oContainerMargin.bottom) + oContentMargin.top})`)         
+            .selectAll("rect")
+            .data(aColumnsData)
+            .join("rect")
+                .attr("x", (d, i) => oXScale(d.sLabel))
+                .attr("y", (d, i) => oYScale(d.iValue))
+                .attr("height", (d, i) => oYScale(0) - oYScale(d.iValue))
+                .attr("width", oXScale.bandwidth());
+            // .attr("transform", `translate(${oContentMargin.left - oContentMargin.right},${oContentMargin.top - oContentMargin.bottom})`)
     }
 
     get _additionalHeight() {
