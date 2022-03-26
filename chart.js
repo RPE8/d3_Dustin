@@ -15,6 +15,7 @@ class Chart {
             left: 10,
             bottom: 10
         };
+        
 
         const fnYAccessor = this.fnYAccessor = (d) => d.iValue;
         const fnXAccessor = this.fnXAccessor = (d) => d.sLabel;
@@ -23,8 +24,44 @@ class Chart {
         const $FirstChartWrapper = this.$FirstChartWrapper = d3.select(`#${sFirstChartId}-wrapper`);
         const $SecondChartWrapper = this.$SecondChartWrapper = d3.select(`#${sSecondChartId}-wrapper`);
 
-        const oSize = Chart.getElementSizeWoBoxSizing($FirstChartWrapper.node());
+        this.sFirstChartId = sFirstChartId;
 
+        
+
+        this.generateDataForChart();
+        // this.drawFirstChart();
+
+        const oObserver = this.oObserver = new ResizeObserver(aEntries => {
+            this.recalculateSizeVariables();
+            console.log("resize");
+            this.drawFirstChart();
+        });
+        
+        oObserver.observe(document.getElementById("chart"));
+
+        // $FirstChartContent.attr("transform", `translate(${oChartContainerMargin.left - oChartContainerMargin.right},${oChartContainerMargin.top - oChartContainerMargin.bottom})`)
+        // Calculates size for second chart after the first one, because adding of first svg makes and impact on
+        //    available size for second one. 
+        // const oCalculatedSizeSecond = this.oCalculatedSizeSecond = Chart.getElementSizeWoBoxSizing($SecondChartWrapper.node());
+        // this.oCalculatedSizeSecond.height -= this._additionalHeight;
+
+        // const $SecondChartSvg = this.$SecondChartSvg = $SecondChartWrapper.append("svg"10
+        //     .attr("id", sSecondChartId)
+        //     .attr("width", oCalculatedSizeSecond.width)oChartContentMargin.left
+        //     .attr("height", oCalculatedSizeSecond.height);
+
+        // const $SecondChartContent = this.$SecondChartContent = $Second))
+                // .attr("y", (d, i) => oYScale(d.iVaChartSvg.append("g")
+        //     .attr("id", `${sSecondChartId}-content`)
+        //     .attr("min-width", oCalculatedSizeSecond.width)
+        //     .attr("min-height", oCalculatedSizeSecond.height);
+    }
+
+    recalculateSizeVariables() {
+        const $FirstChartWrapper = this.$FirstChartWrapper;
+        const oChartContainerMargin = this.oChartContainerMargin;
+        const oChartContentMargin = this.oChartContentMargin;
+        const oSize = Chart.getElementSizeWoBoxSizing($FirstChartWrapper.node());
         oSize.height -= this._additionalHeight;
         let oCalculatedSizeFirst = this.oCalculatedSizeFirst = {
             original: oSize,
@@ -38,43 +75,11 @@ class Chart {
             height: oCalculatedSizeFirst.container.height - (oChartContentMargin.top + oChartContentMargin.bottom),
             width: oCalculatedSizeFirst.container.width - (oChartContentMargin.left + oChartContentMargin.right)
         }
-
-        const $FirstChartContainer = this.$FirstChartContainer = $FirstChartWrapper.append("svg")
-            .attr("id", `${sFirstChartId}-container`)
-            .style("margin", `${oChartContainerMargin.top} ${oChartContainerMargin.right} ${oChartContainerMargin.bottom} ${oChartContainerMargin.left}`)
-            .attr("width", oCalculatedSizeFirst.container.width)
-            .attr("height", oCalculatedSizeFirst.container.height);
-
-        const $FirstChartContent = this.$FirstChartContent = $FirstChartContainer.append("svg")
-            .attr("id", `${sFirstChartId}-content`)
-            .attr("width", oCalculatedSizeFirst.content.width)
-            .attr("height", oCalculatedSizeFirst.content.height)
-            .attr("x", oChartContentMargin.left)
-            .attr("y", oChartContentMargin.top)
-
-
-        // $FirstChartContent.attr("transform", `translate(${oChartContainerMargin.left - oChartContainerMargin.right},${oChartContainerMargin.top - oChartContainerMargin.bottom})`)
-        // Calculates size for second chart after the first one, because adding of first svg makes and impact on
-        //    available size for second one. 
-        // const oCalculatedSizeSecond = this.oCalculatedSizeSecond = Chart.getElementSizeWoBoxSizing($SecondChartWrapper.node());
-        // this.oCalculatedSizeSecond.height -= this._additionalHeight;
-
-        // const $SecondChartSvg = this.$SecondChartSvg = $SecondChartWrapper.append("svg")
-        //     .attr("id", sSecondChartId)
-        //     .attr("width", oCalculatedSizeSecond.width)oChartContentMargin.left
-        //     .attr("height", oCalculatedSizeSecond.height);
-
-        // const $SecondChartContent = this.$SecondChartContent = $Second))
-                // .attr("y", (d, i) => oYScale(d.iVaChartSvg.append("g")
-        //     .attr("id", `${sSecondChartId}-content`)
-        //     .attr("min-width", oCalculatedSizeSecond.width)
-        //     .attr("min-height", oCalculatedSizeSecond.height);
     }
 
     drawFirstChart() {
         let aColumnsData = this.columnsData;
         let aLineData = this.firstLineData;
-        const $ChartContent = this.$FirstChartContent;
 
         const oChartMargin = this.oFirstChartMargin = {
             top: 10,
@@ -89,10 +94,34 @@ class Chart {
             width: oCalculatedSizeFirst.content.width - (oChartMargin.left + oChartMargin.right)
         }
 
+        const oChartContainerMargin = this.oChartContainerMargin;
+        const oChartContentMargin = this.oChartContentMargin;
+
+        if (this.$FirstChartContainer) {
+            this.$FirstChartContainer.remove();
+        }
+
+        const $FirstChartContainer = this.$FirstChartContainer = this.$FirstChartWrapper.append("svg")
+            .attr("id", `${this.sFirstChartId}-container`)
+            .style("margin", `${oChartContainerMargin.top} ${oChartContainerMargin.right} ${oChartContainerMargin.bottom} ${oChartContainerMargin.left}`)
+            .attr("width", oCalculatedSizeFirst.container.width)
+            .attr("height", oCalculatedSizeFirst.container.height);
+
+        const $FirstChartContent = this.$FirstChartContent = $FirstChartContainer.append("svg")
+            .attr("id", `${this.sFirstChartId}-content`)
+            .attr("width", oCalculatedSizeFirst.content.width)
+            .attr("height", oCalculatedSizeFirst.content.height)
+            .attr("x", oChartContentMargin.left)
+            .attr("y", oChartContentMargin.top)
+
+        const $ChartContent = this.$FirstChartContent;
+
         if (!aColumnsData || !$ChartContent) {
             console.log("drawFirstChart no data");
             return false;
         }
+
+        
 
         const oYScale = this.oYScale = d3.scaleLinear()
             .range([oCalculatedSizeFirst.chart.height, oChartMargin.top])
@@ -100,7 +129,9 @@ class Chart {
 
         const oXScale = this.oXScale = d3.scaleBand()
             .range([oChartMargin.left, oCalculatedSizeFirst.chart.width])
-            .domain(aColumnsData.map(this.fnXAccessor));
+            .domain(aColumnsData.map(this.fnXAccessor))
+            .paddingOuter(0.5)
+            .paddingInner(0.5)
 
         const oYAxis = this.oYAxis = d3.axisLeft(oYScale);
         const oXAxis = this.oXAxis = d3.axisBottom(oXScale);
@@ -236,13 +267,6 @@ class Chart {
 
 
 const chart = new Chart("firstChart", "secondChart");
-chart.generateDataForChart();
-console.log('Columns:');
-console.log(chart.columnsData);
-console.log('First Line:');
-console.log(chart.firstLineData);
-console.log('SecondLine:');
-console.log(chart.secondLineData);
-chart.drawFirstChart();
+
 
 // window.addEventListener("resize", chart.redraw);
