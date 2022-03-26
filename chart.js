@@ -6,7 +6,7 @@ class Chart {
             top: 20,
             right: 20,
             left: 20,
-            bottom: 20
+            bottom: 50
         }
 
         const oChartContainerMargin = this.oChartContainerMargin = {
@@ -120,8 +120,6 @@ class Chart {
             console.log("drawFirstChart no data");
             return false;
         }
-
-        
 
         const oYScale = this.oYScale = d3.scaleLinear()
             .range([oCalculatedSizeFirst.chart.height, oChartMargin.top])
