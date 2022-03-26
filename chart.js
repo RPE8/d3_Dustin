@@ -1,11 +1,18 @@
 class Chart {
     constructor(sFirstChartId, sSecondChartId) {
-        const oMargin = this.oMargin = {
+        const oChartContentMargin = this.oChartContentMargin = {
             top: 20,
-            right: 30,
+            right: 10,
             left: 50,
             bottom: 60
         }
+
+        const oChartMargin = this.oChartMargin = {
+            top: 0,
+            right: 0,
+            left: 0,
+            bottom: 0
+        };
 
         const oFirstChartWrapper = this.oFirstChartWrapper = d3.select(`#${sFirstChartId}Wrapper`);
         const oSecondChartWrapper = this.oSecondChartWrapper = d3.select(`#${sSecondChartId}Wrapper`);
@@ -17,6 +24,13 @@ class Chart {
             .attr("width", oCalculatedSizeFirst.width)
             .attr("height", oCalculatedSizeFirst.height);
 
+        const oFirstChartContent = this.oFirstChartContent = oFirstChartSvg.append("g")
+            .attr("id", `${sFirstChartId}-content`)
+            .attr("min-width", oCalculatedSizeFirst.width)
+            .attr("min-height", oCalculatedSizeFirst.height);
+
+
+        oFirstChartContent.attr("transform", `translate(${oChartMargin.left - oChartMargin.right},${oChartMargin.top - oChartMargin.bottom})`)
         // Calculates size for second chart after the first one, because adding of first svg makes and impact on
         //    available size for second one. 
         const oCalculatedSizeSecond = this.oCalculatedSizeSecond = Chart.getElementSizeWoBoxSizing(oSecondChartWrapper.node());
@@ -25,14 +39,16 @@ class Chart {
             .attr("id", sSecondChartId)
             .attr("width", oCalculatedSizeSecond.width)
             .attr("height", oCalculatedSizeSecond.height);
+
+        const oSecondChartContent = this.oSecondChartContent = oSecondChartSvg.append("g");
     }
 
     drawFirstChart() {
         let aColumnsData = this.columnsData;
-        const $Svg = this.oFirstChartSvg;
-        const oMargin = this.oMargin;
+        const $chartContainer = this.oFirstChartContent;
+        const oMargin = this.oChartContentMargin;
 
-        if (!aColumnsData || !$Svg) {
+        if (!aColumnsData || !$chartContainer) {
             console.log("drawFirstChart no data");
             return false;
         }
@@ -48,11 +64,11 @@ class Chart {
         const oYAxis = this.oYAxis = d3.axisLeft(oYScale);
         const oXAxis = this.oXAxis = d3.axisBottom(oXScale);
 
-        $Svg.append("g")
+        $chartContainer.append("g")
             .attr("transform", `translate(${oMargin.left},${0})`)
             .call(oYAxis);
         
-        $Svg.append("g")
+        $chartContainer.append("g")
             .attr("transform", `translate(${0},${this.oCalculatedSizeFirst.height - oMargin.bottom})`)
             .call(oXAxis);
     }
