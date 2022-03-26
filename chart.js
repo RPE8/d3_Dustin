@@ -15,6 +15,13 @@ class Chart {
             left: 10,
             bottom: 10
         };
+
+        const oChartMargin = this.oFirstChartMargin = {
+            top: 10,
+            right: 10,
+            left: 30,
+            bottom: 10
+        };
         
 
         const fnYAccessor = this.fnYAccessor = (d) => d.iValue;
@@ -79,14 +86,9 @@ class Chart {
 
     drawFirstChart() {
         let aColumnsData = this.columnsData;
-        let aLineData = this.firstLineData;
+        let aLineData = this.firstLineData;  
 
-        const oChartMargin = this.oFirstChartMargin = {
-            top: 10,
-            right: 10,
-            left: 30,
-            bottom: 10
-        };
+        const oChartMargin = this.oFirstChartMargin;
 
         let oCalculatedSizeFirst = this.oCalculatedSizeFirst;
         oCalculatedSizeFirst.chart = {
@@ -123,7 +125,8 @@ class Chart {
 
         const oYScale = this.oYScale = d3.scaleLinear()
             .range([oCalculatedSizeFirst.chart.height, oChartMargin.top])
-            .domain([0, 100]);
+            // 110 is for additional space for labels of bars, that will have 100 value.
+            .domain([0, 110]);
 
         const oXScale = this.oXScale = d3.scaleBand()
             .range([oChartMargin.left, oCalculatedSizeFirst.chart.width])
@@ -135,13 +138,13 @@ class Chart {
         const oXAxis = this.oXAxis = d3.axisBottom(oXScale);
 
         const fnXScaleAccessor = this.fnXScaleAccessor = (d) => oXScale(this.fnXAccessor(d));
-        const fnYScaleAccessor = this.fnYScaleAccesso = (d) => oYScale(this.fnYAccessor(d));
+        const fnYScaleAccessor = this.fnYScaleAccessor = (d) => oYScale(this.fnYAccessor(d));
         const fnHeightBarAccessor = this.fnHeightBarAccessor = (d) => oYScale(0) - oYScale(this.fnYAccessor(d));
 
         const lineGenerator = d3.line()
             .x(fnXScaleAccessor)
             .y(fnYScaleAccessor)
-            .curve(d3.curveBasis);
+            // .curve(d3.curveBasis);
 
         $ChartContent.append("g")
             .attr("transform", `translate(${oChartMargin.left},${0})`)
@@ -150,18 +153,43 @@ class Chart {
         $ChartContent.append("g")
             .attr("transform", `translate(${0},${oCalculatedSizeFirst.chart.height})`)
             .call(oXAxis);
-            
         
+        const $BarsContainer = this.$BarsContainer = $ChartContent.append("g");
 
-        const $Bars = this.$Bars = $ChartContent.append("g")        
-            .selectAll("rect")
+        let $Bars = this.$Bars = $BarsContainer.selectAll('.bar')
             .data(aColumnsData)
-            .join("rect")
-                .attr("x", fnXScaleAccessor)
-                .attr("y", fnYScaleAccessor)
-                .attr("height", fnHeightBarAccessor)
-                .attr("width", oXScale.bandwidth());
+            .enter()
+            .append("g");
 
+        $Bars.append("rect")
+            .attr("x", fnXScaleAccessor)
+            .attr("y", fnYScaleAccessor)
+            .style("padding-top", "10px")
+            .attr("height", fnHeightBarAccessor)
+            .attr("width", oXScale.bandwidth());
+        //         
+        //     .selectAll("rect")
+        //     .data(aColumnsData)
+        //     .enter()
+        //     ("rect")
+                
+
+        $Bars.append("text")
+            .text(this.fnYAccessor)
+            .attr("x", (d) => {
+                console.log(d);
+                return this.fnXScaleAccessor(d) + oXScale.bandwidth(this.fnXScaleAccessor(d))/2;
+            })
+            .attr("y", (d) => {
+                return this.fnYScaleAccessor(d) - 5;
+            })
+            .attr("width", 20)
+            .attr("height", 20)
+            .attr("font-size" , "14px")
+            .attr("color" , "red")
+            .attr("fill" , "red")
+            .attr("text-anchor", "middle");
+            
 
         const line = $ChartContent.append("path")
             .attr("d", lineGenerator(aLineData))
