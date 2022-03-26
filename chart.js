@@ -47,6 +47,7 @@ class Chart {
 
     drawFirstChart() {
         let aColumnsData = this.columnsData;
+        let aLineData = this.firstLineData;
         const $ChartContainer = this.oFirstChartContent;
         const oContentMargin = this.oChartContentMargin;
         const oContainerMargin = this.oChartMargin;
@@ -64,9 +65,15 @@ class Chart {
             .range([oContentMargin.left, this.oCalculatedSizeFirst.width - oContentMargin.right])
             .domain(aColumnsData.map((oData) => oData.sLabel));
 
-
         const oYAxis = this.oYAxis = d3.axisLeft(oYScale);
         const oXAxis = this.oXAxis = d3.axisBottom(oXScale);
+
+        const lineGenerator = d3.line()
+            .x((d) => oXScale(d.sLabel))
+            .y((d) => oYScale(d.iValue))
+            .curve(d3.curveBasis);
+
+        
 
         $ChartContainer.append("g")
             .attr("transform", `translate(${oContentMargin.left},${0})`)
@@ -85,7 +92,17 @@ class Chart {
                 .attr("y", (d, i) => oYScale(d.iValue))
                 .attr("height", (d, i) => oYScale(0) - oYScale(d.iValue))
                 .attr("width", oXScale.bandwidth());
-            // .attr("transform", `translate(${oContentMargin.left - oContentMargin.right},${oContentMargin.top - oContentMargin.bottom})`)
+
+
+        const line = $ChartContainer.append("path")
+            .attr("d", lineGenerator(aLineData))
+            .attr("fill", "none")
+            .attr("stroke", "Red")
+            .attr("stroke-width", 2);
+        // const $Line = this.$Line = $ChartContainer.append("path")
+        //     .attr('class', "line-1")
+
+
     }
 
     get _additionalHeight() {
